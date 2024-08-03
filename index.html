@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bate Papo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        #login-screen, #chat-screen, #menu-screen {
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        #menu {
+            display: flex;
+            width: 80%;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .menu-block {
+            width: 45%;
+            background: #fff;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+
+        .user-info img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .user-info .description {
+            text-align: left;
+        }
+
+        #chat-box {
+            width: 100%;
+            height: 400px;
+            border: 1px solid #ccc;
+            overflow-y: scroll;
+            margin-bottom: 10px;
+            padding: 10px;
+        }
+
+        .message {
+            margin-bottom: 10px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div id="login-screen">
+        <h2>Insira seu nome, gênero e foto de perfil</h2>
+        <input type="text" id="username" placeholder="Seu nome"><br><br>
+        <select id="gender">
+            <option value="feminino">Feminino</option>
+            <option value="masculino">Masculino</option>
+        </select><br><br>
+        <textarea id="description" placeholder="Escreva uma descrição (até 5 linhas)" rows="5"></textarea><br><br>
+        <input type="file" id="profile-pic" accept="image/*"><br><br>
+        <button onclick="enterChat()">Entrar</button>
+    </div>
+
+    <div id="menu-screen" style="display: none;">
+        <div id="menu">
+            <div class="menu-block" id="women-block">
+                <h3>Mulheres</h3>
+            </div>
+            <div class="menu-block" id="men-block">
+                <h3>Homens</h3>
+            </div>
+        </div>
+    </div>
+
+    <div id="chat-screen" style="display: none;">
+        <div id="chat-box"></div>
+        <input type="text" id="message" placeholder="Digite sua mensagem">
+        <button onclick="sendMessage()">Enviar</button>
+    </div>
+
+    <script>
+        function enterChat() {
+            const username = document.getElementById('username').value;
+            const gender = document.getElementById('gender').value;
+            const description = document.getElementById('description').value;
+            const profilePicInput = document.getElementById('profile-pic');
+            const profilePicFile = profilePicInput.files[0];
+            
+            if (username && description && profilePicFile) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const profilePic = e.target.result;
+                    localStorage.setItem('username', username);
+                    localStorage.setItem('gender', gender);
+                    localStorage.setItem('description', description);
+                    localStorage.setItem('profilePic', profilePic);
+                    document.getElementById('login-screen').style.display = 'none';
+                    document.getElementById('menu-screen').style.display = 'block';
+                    updateMenu(username, gender, description, profilePic);
+                }
+                reader.readAsDataURL(profilePicFile);
+            } else {
+                alert('Por favor, insira todas as informações necessárias.');
+            }
+        }
+
+        function updateMenu(username, gender, description, profilePic) {
+            const userBlock = document.createElement('div');
+            userBlock.className = 'user-info';
+            
+            const img = document.createElement('img');
+            img.src = profilePic;
+            
+            const descDiv = document.createElement('div');
+            descDiv.className = 'description';
+            descDiv.innerHTML = `<strong>${username}</strong><br>${description.replace(/\n/g, '<br>')}`;
+            
+            userBlock.appendChild(img);
+            userBlock.appendChild(descDiv);
+
+            userBlock.onclick = function() {
+                openChat(username, profilePic);
+            };
+            
+            if (gender === 'feminino') {
+                document.getElementById('women-block').appendChild(userBlock);
+            } else {
+                document.getElementById('men-block').appendChild(userBlock);
+            }
+        }
+
+        function openChat(username, profilePic) {
+            document.getElementById('menu-screen').style.display = 'none';
+            document.getElementById('chat-screen').style.display = 'block';
+            localStorage.setItem('chatWith', username);
+            localStorage.setItem('chatWithPic', profilePic);
+        }
+
+        function sendMessage() {
+            const message = document.getElementById('message').value;
+            const username = localStorage.getItem('username');
+            
+            if (message) {
+                const chatBox = document.getElementById('chat-box');
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message';
+                
+                const text = document.createElement('div');
+                text.textContent = `${username}: ${message}`;
+                
+                messageDiv.appendChild(text);
+                chatBox.appendChild(messageDiv);
+                
+                document.getElementById('message').value = '';
+            }
+        }
+
+        window.onload = function() {
+            localStorage.clear();
+        }
+    </script>
+</body>
+</html>
